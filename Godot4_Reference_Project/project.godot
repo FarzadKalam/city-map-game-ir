@@ -1,0 +1,33 @@
+config_version=5
+
+[application]
+
+config/name="Iran City Builder (Golbahar)"
+config/description="Online City-Building & Governance Strategy Game"
+config/version="0.1.0"
+run/main_scene="res://scenes/world/MainWorld.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+
+[autoload]
+
+EventBus="*res://scripts/core/EventBus.gd"
+GameManager="*res://scripts/core/GameManager.gd"
+
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/size/mode=0
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="mobile"

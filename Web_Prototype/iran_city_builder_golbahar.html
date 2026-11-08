@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>گلبهار تایکون | شبیه‌ساز استراتژیک شهرسازی</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- بارگذاری فونت‌های آزاد و معتبر Vazirmatn و Lalezar مستقیماً از Google Fonts بدون مشکل لایسنس -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      overflow: hidden;
+      background-color: #120e24;
+      color: #ffffff;
+    }
+
+    .game-font {
+      font-family: 'Lalezar', cursive, sans-serif;
+      letter-spacing: 0.5px;
+    }
+
+    .game-num {
+      font-family: 'Vazirmatn', monospace, sans-serif;
+      font-feature-settings: "tnum";
+      letter-spacing: 0.5px;
+    }
+
+    /* استایل برجسته متون در بازی راش رویال با کانتور تیره عمیق */
+    .rr-text-stroke {
+      text-shadow:
+        -1.5px -1.5px 0 #181128,
+         1.5px -1.5px 0 #181128,
+        -1.5px  1.5px 0 #181128,
+         1.5px  1.5px 0 #181128,
+         0px 3px 0px #0b0714;
+    }
+
+    /* کپسول‌های منابع بالا به سبک دقیق Rush Royale (قاب بنفش متالیک، هایلایت، دکمه مثبت سبز) */
+    .rr-resource-bar {
+      height: 38px;
+      background: linear-gradient(180deg, #372957 0%, #1c1430 100%);
+      border: 2.5px solid #140d24;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.6);
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      padding: 0 6px 0 4px;
+      gap: 6px;
+      position: relative;
+    }
+
+    .rr-res-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffd54f, #f57f17);
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .rr-plus-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+      border: 1.5px solid #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 0 #0f5132;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    /* پین‌های سبک کارت واحد (Rush Royale Unit Pin) روی نقشه سه‌بعدی */
+    .rr-unit-pin {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      pointer-events: auto;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.8));
+      z-index: 25;
+    }
+
+    .rr-unit-pin:hover {
+      transform: translate(-50%, -110%) scale(1.1);
+      z-index: 40;
+    }
+
+    .rr-pin-card {
+      background: linear-gradient(180deg, #382c5c 0%, #1f1738 100%);
+      border: 2.5px solid #f59e0b;
+      border-radius: 12px;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.6), 0 4px 6px rgba(0,0,0,0.5);
+      padding: 3px 8px 3px 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rr-pin-shield {
+      width: 26px;
+      height: 28px;
+      background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1a0e05;
+      font-weight: 900;
+      font-size: 13px;
+      border: 1.5px solid #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    .rr-pin-pointer {
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid #f59e0b;
+      margin-top: -1px;
+    }
+
+    /* دکمه‌های اکشن کناری الهام‌گرفته از منوهای راش رویال */
+    .rr-side-btn {
+      width: 58px;
+      height: 60px;
+      background: linear-gradient(180deg, #4c3b77 0%, #281d45 100%);
+      border: 3px solid #140d24;
+      border-radius: 14px;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -4px 0 rgba(0,0,0,0.6), 0 5px 0 #0b0714, 0 8px 12px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.08s ease;
+    }
+
+    .rr-side-btn:active {
+      transform: translateY(4px);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.3), 0 1px 0 #0b0714;
+    }
+
+    .rr-badge-notify {
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ef4444, #991b1b);
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+    }
+
+    /* دکمه بازطراحی شده و کاملاً خوانای دریافت عوارض با کنتراست زرد و سفید */
+    .rr-battle-btn {
+      height: 62px;
+      padding: 0 24px;
+      background: linear-gradient(180deg, #facc15 0%, #ea580c 60%, #991b1b 100%);
+      border: 3.5px solid #ffffff;
+      border-radius: 18px;
+      box-shadow: inset 0 3px 0 rgba(255,255,255,0.7), inset 0 -4px 0 rgba(0,0,0,0.6), 0 6px 0 #0b0714, 0 10px 18px rgba(0,0,0,0.75);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.08s ease;
+    }
+
+    .rr-battle-btn:active {
+      transform: translateY(4px);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 2px 0 #0b0714;
+    }
+
+    .rr-modal-card {
+      background: linear-gradient(180deg, #372a5a 0%, #1e1538 100%);
+      border: 4px solid #f59e0b;
+      border-radius: 24px;
+      box-shadow: inset 0 3px 0 rgba(255,255,255,0.4), inset 0 -6px 0 rgba(0,0,0,0.7), 0 10px 30px rgba(0,0,0,0.85);
+    }
+
+    .rr-upgrade-btn {
+      height: 48px;
+      background: linear-gradient(180deg, #4ade80 0%, #16a34a 52%, #15803d 100%);
+      border: 3px solid #0f172a;
+      border-radius: 14px;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.65), inset 0 -4px 0 rgba(20,83,45,0.8), 0 5px 0 #0a0e1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #ffffff;
+      cursor: pointer;
+      transition: transform 0.08s ease;
+    }
+
+    .rr-upgrade-btn:active {
+      transform: translateY(3px);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 2px 0 #0a0e1a;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen relative overflow-hidden select-none">
+
+  <!-- بستر رندر سه‌بعدی دیوراما Three.js -->
+  <div id="mapWrapper" class="absolute inset-0 w-full h-full z-0">
+    <canvas id="gameCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+    <!-- لایه پین‌های هوشمند بالای هر ساختمان -->
+    <div id="labelsContainer" class="absolute inset-0 pointer-events-none overflow-hidden z-10"></div>
+  </div>
+
+  <!-- نوار پرش به محلات گلبهار -->
+  <div class="fixed top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700/80 shadow-2xl pointer-events-auto max-w-[94vw] overflow-x-auto">
+    <span class="text-[10px] text-amber-400 font-black ml-1 whitespace-nowrap">📍 پرش:</span>
+    <button id="locParandBtn" class="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black whitespace-nowrap transition">میدان پرند و استقلال</button>
+    <button id="locMehrBtn" class="px-2.5 py-0.5 rounded-full bg-slate-800 hover:bg-emerald-400 hover:text-slate-950 text-[10px] font-bold text-slate-200 whitespace-nowrap transition">پل امام رضا و مسکن مهر</button>
+    <button id="locLakeBtn" class="px-2.5 py-0.5 rounded-full bg-slate-800 hover:bg-sky-400 hover:text-slate-950 text-[10px] font-bold text-slate-200 whitespace-nowrap transition">دریاچه و بازار</button>
+    <button id="locUniBtn" class="px-2.5 py-0.5 rounded-full bg-slate-800 hover:bg-indigo-400 hover:text-slate-950 text-[10px] font-bold text-slate-200 whitespace-nowrap transition">آتش‌نشانی و کلانتری</button>
+    <button id="locAirportBtn" class="px-2.5 py-0.5 rounded-full bg-slate-800 hover:bg-rose-400 hover:text-slate-950 text-[10px] font-bold text-slate-200 whitespace-nowrap transition">فرودگاه گلبهار</button>
+  </div>
+
+  <!-- اعلان توست درون‌صفحه‌ای -->
+  <div id="gameToast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-amber-400 via-orange-500 to-red-600 text-white px-5 py-2.5 rounded-2xl border-3 border-slate-950 shadow-2xl flex items-center gap-2.5 pointer-events-none">
+    <span id="toastIcon" class="text-lg">⭐</span>
+    <span id="toastMsg" class="font-extrabold text-sm tracking-wide rr-text-stroke">اعلان</span>
+  </div>
+
+  <!-- نوار بالای صفحه (HUD سبک دقیق Rush Royale) -->
+  <header class="fixed top-0 left-0 right-0 z-30 px-3 sm:px-5 pt-2 flex items-center justify-between pointer-events-none">
+    
+    <!-- پروفایل شهردار و تروفی رنک -->
+    <div class="flex items-center gap-2 pointer-events-auto">
+      <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 border-2.5 border-white flex items-center justify-center text-xl shadow-lg relative">
+        🏛️
+        <div class="absolute -bottom-1 -right-1 bg-red-600 border border-white text-white text-[9px] font-black px-1 rounded-md">12</div>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-black text-sm text-amber-300 rr-text-stroke leading-tight">شهردار گلبهار</span>
+        <span class="text-[10px] text-yellow-200 font-extrabold -mt-0.5 flex items-center gap-1 font-mono">
+          <span>350</span> 🏆
+        </span>
+      </div>
+    </div>
+
+    <!-- نوارهای منابع سبک Rush Royale -->
+    <div class="flex items-center gap-2.5 pointer-events-auto">
+      
+      <!-- ۱. خزانه‌داری طلا -->
+      <div class="rr-resource-bar" title="خزانه شهرداری">
+        <div class="rr-res-icon">
+          <svg class="w-5 h-5 drop-shadow" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" fill="#facc15" stroke="#78350f" stroke-width="2"/>
+            <path d="M12 7v10M9 9h6M9 15h6" stroke="#78350f" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span id="treasuryVal" class="font-black text-sm text-yellow-300 rr-text-stroke game-num min-w-[55px] text-center">۲,۴۵۰k</span>
+        <div class="rr-plus-btn">+</div>
+      </div>
+
+      <!-- ۲. الماس بنفش -->
+      <div class="rr-resource-bar" title="الماس پرمیوم">
+        <div class="rr-res-icon" style="background: radial-gradient(circle at 35% 35%, #c084fc, #7e22ce);">
+          <svg class="w-5 h-5 drop-shadow" viewBox="0 0 24 24">
+            <polygon points="12,2 21,9 17,21 7,21 3,9" fill="#e9d5ff" stroke="#4a044e" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <span id="gemsVal" class="font-black text-sm text-purple-200 rr-text-stroke game-num min-w-[28px] text-center">۴۶</span>
+        <div class="rr-plus-btn">+</div>
+      </div>
+
+      <!-- ۳. دکمه تنظیمات صوتی -->
+      <button id="soundBtn" class="w-9 h-9 rounded-xl bg-slate-900/90 border-2 border-slate-700 flex items-center justify-center text-sm shadow-md">
+        <span id="soundIcon">🔊</span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- ستون دکمه‌های اکشن کناری سبک راش رویال -->
+  <aside class="fixed top-24 right-3 z-30 flex flex-col gap-2.5 pointer-events-auto">
+    <button id="sideStoreBtn" class="rr-side-btn" title="ارتقای شبکه معابر">
+      <span class="rr-badge-notify">!</span>
+      <span class="text-2xl">🛣️</span>
+      <span class="text-[9px] font-black text-amber-300 mt-0.5">معابر</span>
+    </button>
+
+    <button id="sideBuildBtn" class="rr-side-btn" title="احداث بنای جدید">
+      <span class="rr-badge-notify">۹</span>
+      <span class="text-2xl">🏗️</span>
+      <span class="text-[9px] font-black text-amber-300 mt-0.5">احداث</span>
+    </button>
+
+    <button id="sidePoliticsBtn" class="rr-side-btn" title="شورای شهر">
+      <span class="text-2xl">🏛️</span>
+      <span class="text-[9px] font-black text-amber-300 mt-0.5">شورا</span>
+    </button>
+
+    <button id="sideNewsBtn" class="rr-side-btn" title="ستاد بحران">
+      <span class="text-2xl">⚠️</span>
+      <span class="text-[9px] font-black text-amber-300 mt-0.5">بحران</span>
+    </button>
+  </aside>
+
+  <!-- دکمه‌های کنترل دوربین -->
+  <div class="fixed top-24 left-3 z-30 flex flex-col gap-2 pointer-events-auto">
+    <button id="zoomInBtn" class="w-9 h-9 rounded-xl bg-slate-900/90 border-2 border-slate-700 text-amber-400 font-black text-lg flex items-center justify-center shadow">＋</button>
+    <button id="zoomOutBtn" class="w-9 h-9 rounded-xl bg-slate-900/90 border-2 border-slate-700 text-amber-400 font-black text-lg flex items-center justify-center shadow">－</button>
+    <button id="rotateCamBtn" class="w-9 h-9 rounded-xl bg-slate-900/90 border-2 border-slate-700 text-cyan-400 font-bold text-sm flex items-center justify-center shadow" title="چرخش ۹۰ درجه">🔄</button>
+    <button id="resetCamBtn" class="w-9 h-9 rounded-xl bg-slate-900/90 border-2 border-slate-700 text-yellow-300 text-xs flex items-center justify-center shadow" title="مرکز نقشه">🎯</button>
+  </div>
+
+  <!-- کارت بازرسی و ارتقای سازه (Unit Upgrade Card) -->
+  <div id="inspectorCard" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 sm:left-16 sm:translate-x-0 z-40 w-[92vw] sm:w-84 rr-modal-card p-4 pointer-events-auto">
+    <div class="flex items-center justify-between pb-2 border-b-2 border-amber-500/40">
+      <div class="flex items-center gap-2">
+        <div id="cardShieldLvl" class="rr-pin-shield">3</div>
+        <div>
+          <span id="cardCategoryBadge" class="text-[10px] text-amber-400 font-bold block">سازه شهری</span>
+          <strong id="cardName" class="font-black text-base text-white rr-text-stroke leading-tight">نام سازه</strong>
+        </div>
+      </div>
+      <button id="closeInspectorBtn" class="w-7 h-7 rounded-full bg-rose-600 border-2 border-white text-white font-black text-xs flex items-center justify-center shadow">✕</button>
+    </div>
+
+    <!-- ستاره‌های سطح تکامل -->
+    <div class="flex items-center justify-between my-2.5 bg-slate-950/70 p-2 rounded-xl border border-slate-800">
+      <span id="cardStageTitle" class="text-sky-300 font-extrabold text-xs">سطح ۳ از ۵</span>
+      <div id="levelStarsRow" class="flex gap-1 text-sm text-amber-400"></div>
+    </div>
+
+    <p id="cardDesc" class="text-xs text-slate-300 leading-relaxed font-semibold mb-3"></p>
+
+    <!-- ویژگی‌ها و تغییرات پس از ارتقا -->
+    <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-xs space-y-1.5 mb-3">
+      <div class="flex justify-between items-center">
+        <span class="text-slate-400">عوارض تولیدی:</span>
+        <span id="cardStat" class="font-extrabold text-emerald-400 game-num">+۲۵,۰۰۰ تومان</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-slate-400">ظرفیت جمعیت:</span>
+        <span id="cardPopStat" class="font-extrabold text-sky-300 game-num">۱۲۰ نفر</span>
+      </div>
+    </div>
+
+    <!-- دکمه بزرگ سبز ارتقا مشابه راش رویال -->
+    <button id="cardActionBtn" class="w-full rr-upgrade-btn font-black text-base rr-text-stroke shadow-xl flex items-center justify-center gap-2">
+      <span class="text-lg">▲▲</span>
+      <span id="upgradeBtnText">ارتقا به سطح بعدی</span>
+    </button>
+  </div>
+
+  <!-- فوتر سبک Rush Royale -->
+  <footer class="fixed bottom-0 left-0 right-0 z-30 px-3 sm:px-5 pb-3 flex items-center justify-between pointer-events-none">
+    
+    <!-- صندوق‌های جوایز مینیاتوری -->
+    <div class="flex items-center gap-2 pointer-events-auto">
+      <div id="greenCrateBtn" class="w-12 h-12 rounded-2xl bg-gradient-to-b from-lime-500 to-emerald-700 border-2.5 border-slate-950 flex flex-col items-center justify-center cursor-pointer shadow-lg active:scale-95">
+        <span class="text-lg drop-shadow">📦</span>
+        <span class="text-[9px] font-mono text-white font-black">۳/۱۰</span>
+      </div>
+      <div id="blueCrateBtn" class="w-12 h-12 rounded-2xl bg-gradient-to-b from-sky-400 to-blue-700 border-2.5 border-slate-950 flex flex-col items-center justify-center cursor-pointer shadow-lg active:scale-95">
+        <span class="text-lg drop-shadow">💎</span>
+        <span class="text-[9px] font-mono text-white font-black">۱۰/۱۰</span>
+      </div>
+    </div>
+
+    <!-- دکمه بازطراحی شده، کاملاً برجسته و خوانای دریافت عوارض با متن سفید کانتوردار -->
+    <button id="mainPlayBtn" class="rr-battle-btn pointer-events-auto">
+      <span class="text-3xl drop-shadow">💰</span>
+      <div class="flex flex-col text-right">
+        <span class="font-black text-lg sm:text-xl text-white rr-text-stroke leading-none tracking-wide">دریافت عوارض</span>
+        <span class="text-[10px] font-black text-yellow-200 mt-1 font-mono tracking-wider drop-shadow">COLLECT TAX</span>
+      </div>
+    </button>
+  </footer>
+
+  <!-- مودال احداث بنا -->
+  <div id="buildModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div class="w-full max-w-md rr-modal-card p-4 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-amber-500/40">
+        <strong class="font-black text-base text-amber-300 rr-text-stroke">احداث سازه جدید در گلبهار</strong>
+        <button id="closeBuildModalBtn" class="w-7 h-7 rounded-full bg-rose-600 border-2 border-white text-white font-black text-xs flex items-center justify-center">✕</button>
+      </div>
+      <p class="text-xs text-slate-300 mt-2 mb-3 font-semibold">یک کاربری را انتخاب کنید و سپس روی زمین در نقشه کلیک کنید تا کارگاه ساخت برپا شود:</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="villa">
+          <span class="text-2xl">🏡</span>
+          <span class="font-black text-xs text-rose-300">خانه ویلایی</span>
+          <span class="text-[10px] text-slate-400 game-num">120k تومان</span>
+        </button>
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="maskan_melli">
+          <span class="text-2xl">🏢</span>
+          <span class="font-black text-xs text-sky-300">آپارتمان مسکن ملی</span>
+          <span class="text-[10px] text-slate-400 game-num">220k تومان</span>
+        </button>
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="shop">
+          <span class="text-2xl">🏪</span>
+          <span class="font-black text-xs text-amber-300">مغازه و کافه</span>
+          <span class="text-[10px] text-slate-400 game-num">150k تومان</span>
+        </button>
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="passage">
+          <span class="text-2xl">🛍️</span>
+          <span class="font-black text-xs text-orange-300">پاساژ تجاری</span>
+          <span class="text-[10px] text-slate-400 game-num">300k تومان</span>
+        </button>
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="mall">
+          <span class="text-2xl">🏬</span>
+          <span class="font-black text-xs text-yellow-300">مجتمع تجاری</span>
+          <span class="text-[10px] text-slate-400 game-num">450k تومان</span>
+        </button>
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="fire_station">
+          <span class="text-2xl">🚒</span>
+          <span class="font-black text-xs text-red-400">آتش‌نشانی</span>
+          <span class="text-[10px] text-slate-400 game-num">280k تومان</span>
+        </button>
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="police">
+          <span class="text-2xl">🚓</span>
+          <span class="font-black text-xs text-blue-300">کلانتری</span>
+          <span class="text-[10px] text-slate-400 game-num">280k تومان</span>
+        </button>
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="municipality">
+          <span class="text-2xl">🏛️</span>
+          <span class="font-black text-xs text-emerald-300">شهرداری</span>
+          <span class="text-[10px] text-slate-400 game-num">400k تومان</span>
+        </button>
+        <button class="select-build-type p-2.5 rounded-2xl bg-slate-800/90 border-2 border-slate-700 hover:border-amber-400 flex flex-col items-center gap-1" data-btype="airport">
+          <span class="text-2xl">✈️</span>
+          <span class="font-black text-xs text-indigo-300">فرودگاه</span>
+          <span class="text-[10px] text-slate-400 game-num">600k تومان</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال معابر -->
+  <div id="roadsModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div class="w-full max-w-md rr-modal-card p-4 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-amber-500/40">
+        <strong class="font-black text-base text-amber-300 rr-text-stroke">ارتقای یکپارچه شبکه معابر گلبهار</strong>
+        <button id="closeRoadsModalBtn" class="w-7 h-7 rounded-full bg-rose-600 border-2 border-white text-white font-black text-xs flex items-center justify-center">✕</button>
+      </div>
+      <div id="roadsListContainer" class="mt-3 space-y-2.5 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- مودال شورا -->
+  <div id="politicsModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div class="w-full max-w-md rr-modal-card p-4 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-amber-500/40">
+        <strong class="font-black text-base text-amber-300 rr-text-stroke">صحن شورای شهر گلبهار</strong>
+        <button id="closePoliticsModalBtn" class="w-7 h-7 rounded-full bg-rose-600 border-2 border-white text-white font-black text-xs flex items-center justify-center">✕</button>
+      </div>
+      <div class="mt-3 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs space-y-2">
+        <strong class="text-amber-300 block font-black">لایحه عمرانی: تکمیل شریان‌های اصلی و روشنایی بلوارها</strong>
+        <p class="text-slate-300 text-[11px] font-semibold leading-relaxed">تصویب بودجه جهت تعریض معابر و تکمیل خط قطار برقی گلبهار-مشهد.</p>
+        <button id="approveMetroBillBtn" class="w-full rr-upgrade-btn font-black text-xs rr-text-stroke">
+          تصویب لایحه در شورا (+۳ اعتبار)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال بحران -->
+  <div id="crisisModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div class="w-full max-w-md rr-modal-card p-4 shadow-2xl relative" style="border-color: #ef4444;">
+      <div class="flex items-center justify-between pb-2 border-b-2 border-red-500/40">
+        <strong class="font-black text-base text-rose-400 rr-text-stroke">ستاد فرماندهی بحران گلبهار</strong>
+        <button id="closeCrisisModalBtn" class="w-7 h-7 rounded-full bg-rose-600 border-2 border-white text-white font-black text-xs flex items-center justify-center">✕</button>
+      </div>
+      <div class="mt-3 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs space-y-2">
+        <strong class="text-rose-300 block font-black">شبیه‌سازی زلزله ۵.۲ ریشتر دشت چناران</strong>
+        <p class="text-slate-300 text-[11px] font-semibold leading-relaxed">آزمایش استقامت سازه‌ها و آمادگی ایستگاه‌های آتش‌نشانی و کلانتری.</p>
+        <button id="simulateQuakeBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-b from-rose-500 to-red-700 border-2 border-slate-950 font-black text-white text-xs shadow-lg active:scale-95">
+          آزمایش زلزله
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // ۱. داده‌ها و ساختار شهر
+    // =========================================================================
+    const BUILDING_CATALOG = {
+      villa: {
+        categoryTitle: 'خانه ویلایی', cost: 120,
+        stages: ['سطح ۱: ویلای نقلی ۱ طبقه', 'سطح ۲: ویلای ۱.۵ طبقه ایوان‌دار', 'سطح ۳: ویلای دوبلکس با بالکن نرده‌دار', 'سطح ۴: ویلای لوکس با پارکینگ و خودرو', 'سطح ۵: عمارت مدرن ۳ طبقه با استخر']
+      },
+      maskan_melli: {
+        categoryTitle: 'آپارتمان مسکن ملی', cost: 220,
+        stages: ['سطح ۱: مسکن ملی ۳ طبقه پایه', 'سطح ۲: مسکن ملی ۳ طبقه با نمای آجری', 'سطح ۳: مسکن ملی ۴ طبقه با بالکن', 'سطح ۴: مجتمع ۵ طبقه کامل با آسانسور', 'سطح ۵: مجتمع دوقلوی ۵ طبقه با حیاط']
+      },
+      shop: {
+        categoryTitle: 'مغازه و کافه', cost: 150,
+        stages: ['سطح ۱: دکه و مغازه تک‌دهنه', 'سطح ۲: کافه با سایبان راه‌راه آبی', 'سطح ۳: فروشگاه ۲ طبقه شیشه‌ای', 'سطح ۴: جایگاه سوخت و خدمات GAS', 'سطح ۵: هایپرمارکت و کلینیک تجاری']
+      },
+      passage: {
+        categoryTitle: 'پاساژ و بازارچه', cost: 300,
+        stages: ['سطح ۱: بازارچه ۱ طبقه', 'سطح ۲: پاساژ ۲ طبقه با ویترین', 'سطح ۳: پاساژ ۳ طبقه شطرنجی', 'سطح ۴: پاساژ ۴ طبقه با نئون', 'سطح ۵: مرکز خرید ۵ طبقه با کافه بام']
+      },
+      mall: {
+        categoryTitle: 'مجتمع تجاری بزرگ', cost: 450,
+        stages: ['سطح ۱: مرکز خرید ۲ طبقه', 'سطح ۲: مجتمع تجاری ۴ طبقه', 'سطح ۳: سیتی‌سنتر ۶ طبقه با سینما', 'سطح ۴: برج تجاری ۸ طبقه صورتی/آبی', 'سطح ۵: مگامال دوقلو با هلی‌پد']
+      },
+      municipality: {
+        categoryTitle: 'ساختمان شهرداری', cost: 400,
+        stages: ['سطح ۱: دهیاری و خدمات شهری', 'سطح ۲: شهرداری ناحیه ۲ طبقه', 'سطح ۳: عمارت مرکزی با ساعت شهری', 'سطح ۴: کاخ شهرداری با گنبد فیروزه‌ای', 'سطح ۵: مجتمع هوشمند شهری با رادار']
+      },
+      fire_station: {
+        categoryTitle: 'ایستگاه آتش‌نشانی', cost: 280,
+        stages: ['سطح ۱: پایگاه امداد ۱ طبقه', 'سطح ۲: ایستگاه ۲ آشیانه با کامیون', 'سطح ۳: ایستگاه مرکزی با برج دیده‌بانی', 'سطح ۴: ستاد ۳ طبقه با نردبان هیدرولیک', 'سطح ۵: فرماندهی ایمنی با هلی‌پد نجات']
+      },
+      police: {
+        categoryTitle: 'کلانتری و پلیس', cost: 280,
+        stages: ['سطح ۱: پاسگاه انتظامی', 'سطح ۲: کلانتری ۲ طبقه با خودروی گشت', 'سطح ۳: کلانتری مرکزی با دکل بی‌سیم', 'سطح ۴: ستاد فرماندهی شهرستان ۴ طبقه', 'سطح ۵: مجتمع پایش تصویری و امنیت']
+      },
+      airport: {
+        categoryTitle: 'فرودگاه گلبهار', cost: 600,
+        stages: ['سطح ۱: باند خاکی و آشیانه', 'سطح ۲: باند آسفالت با بادنما', 'سطح ۳: برج مراقبت با هواپیما', 'سطح ۴: ترمینال مسافربری و برج مدرن', 'سطح ۵: فرودگاه کامل با آشیانه‌های بزرگ']
+      }
+    };
+
+    const ROAD_STAGE_NAMES = {
+      1: 'سطح ۱: کوچه خاکی / باریک',
+      2: 'سطح ۲: خیابان فرعی آسفالت با جدول',
+      3: 'سطح ۳: خیابان اصلی دوطرفه با خط‌کشی و چراغ',
+      4: 'سطح ۴: بزرگراه ۴ بانده با بلوار چمن‌کاری',
+      5: 'سطح ۵: آزادراه هوشمند با پل روگذر'
+    };
+
+    // شبکه معابر بسته با ۲ پل ورودی واقعی (استقلال و امام رضا) و اتصال انتهای امام رضا به آبقد
+        // =========================================================================
+    // ساختار شبکه بلوک‌بندی شهری (Urban Block Zoning) بر پایه خیابان‌های گلبهار
+    // هر ساختمان دقیقاً داخل بلوک ساختمانی خود قرار می‌گیرد و به پیاده‌رو متصل است
+    // هیچ ساختمانی روی آسفالت یا تقاطع نمی‌افتد و اتومبیل‌ها فقط روی خطوط آسفالت حرکت می‌کنند
+    // =========================================================================
+
+    // بلوارهای واقعی گلبهار با اتصال هندسی دقیق به تقاطع‌ها و میادین
+    const GOLBAHAR_ROADS_NETWORK = [
+      // ۱. بزرگراه مشهد - قوچان (شریان ترانزیتی شمال)
+      { id: 'rd_mashhad_hwy', name: 'بزرگراه مشهد - قوچان', kind: 'road', level: 5, axis: 'x', z: -95, x1: -140, x2: 140, desc: 'شریان اصلی ترانزیتی بین مشهد و چناران متصل به ۲ پل ورودی گلبهار.' },
+
+      // ۲. دو پل ورودی رسمی شهر گلبهار از بزرگراه مشهد
+      { id: 'bridge_esteghlal', name: 'پل ورودی ۱: تقاطع غیرهمسطح استقلال', kind: 'bridge', level: 5, x: 28, z: -95, z1: -108, z2: -82, desc: 'پل اصلی ورودی مسافران مشهد به بلوار استقلال و میدان پرند.' },
+      { id: 'bridge_imam_reza', name: 'پل ورودی ۲: تقاطع غیرهمسطح امام رضا', kind: 'bridge', level: 5, x: -65, z: -95, z1: -108, z2: -82, desc: 'پل ورودی غربی گلبهار از بزرگراه مشهد مستقیماً به بلوار امام رضا.' },
+
+      // ۳. رینگ کمربندی بسته دور شهر (بلوار ابن سینا، پژوهش، جمهوری و کاوه)
+      { id: 'ring_north', name: 'بلوار کمربندی شمالی (ابن سینا)', kind: 'road', level: 4, axis: 'x', z: -80, x1: -110, x2: 110, desc: 'کمربندی شمالی متصل‌کننده پل استقلال و پل امام رضا.' },
+      { id: 'ring_south', name: 'بلوار کمربندی جنوبی (پژوهش)', kind: 'road', level: 4, axis: 'x', z: 85, x1: -110, x2: 110, desc: 'کمربندی جنوبی مسدودکننده مرز جنوبی شهر در مجاورت فرودگاه.' },
+      { id: 'ring_west',  name: 'بلوار کمربندی غربی (جمهوری)', kind: 'road', level: 4, axis: 'z', x: -110, z1: -80, z2: 85, desc: 'کمربندی غربی مسدودکننده بافت مسکن مهر.' },
+      { id: 'ring_east',  name: 'بلوار کمربندی شرقی (کاوه)', kind: 'road', level: 4, axis: 'z', x: 110, z1: -80, z2: 85, desc: 'کمربندی شرقی پردیس دانشگاه آزاد.' },
+
+      // ۴. شریان‌های اصلی و ستون فقرات شهری
+      { id: 'rd_esteghlal', name: 'بلوار استقلال گلبهار', kind: 'road', level: 4, axis: 'z', x: 28, z1: -80, z2: 85, desc: 'شریان اصلی و ستون فقرات شهر گلبهار متصل به پل استقلال.' },
+      { id: 'rd_parand', name: 'بلوار پرند', kind: 'road', level: 4, axis: 'x', z: 0, x1: -110, x2: 110, desc: 'شریان مرکزی تجاری متصل به میدان پرند و دریاچه سنجاقک.' },
+      { id: 'rd_attar', name: 'بلوار عطار نیشابوری', kind: 'road', level: 3, axis: 'x', z: 45, x1: -110, x2: 110, desc: 'بلوار تفکیک‌کننده بافت ویلایی.' },
+      { id: 'rd_edalat', name: 'بلوار عدالت', kind: 'road', level: 3, axis: 'z', x: -65, z1: -25, z2: 85, desc: 'شریان خدمات‌رسانی به مجتمع‌های مسکن مهر.' },
+      { id: 'rd_ebne_sina', name: 'بلوار ابن سینا', kind: 'road', level: 3, axis: 'z', x: 70, z1: -80, z2: 85, desc: 'محور اتصال پردیس دانشگاهی و خدمات ایمنی.' },
+
+      // بلوار امام رضا که از پل ۲ ورودی شروع شده و انتهای آن به جاده آبقد می‌پیوندد
+      { id: 'rd_imam_reza', name: 'بلوار امام رضا (ع)', kind: 'road', level: 4, isCurved: true, points: [[-65, -80], [-65, -25], [-85, 10], [-110, 30]], desc: 'بلوار بزرگ امام رضا که از پل ۲ ورودی شروع شده و انتهای آن به آبقد می‌رسد.' },
+
+      // خروجی آبقد دقیقاً در انتهای بلوار امام رضا (مسدود با ایست بازرسی)
+      { id: 'rd_abqad', name: 'جاده ییلاقی آبقد (انتهای بلوار امام رضا - مسدود)', kind: 'road', isBlockedExit: true, level: 2, axis: 'x', z: 30, x1: -150, x2: -110, desc: 'خروجی به سمت دره آبقد در انتهای بلوار امام رضا که با ایست بازرسی مسدود است.' },
+
+      // ۵. میادین و دوربرگردان‌ها
+      { id: 'rb_parand', name: 'میدان پرند', isRoundabout: true, level: 4, x: 28, z: 0, desc: 'تقاطع مرکزی بلوار استقلال و بلوار پرند.' },
+      { id: 'rb_imam_reza', name: 'میدان امام رضا', isRoundabout: true, level: 4, x: -65, z: -25, desc: 'میدان ورودی بلوار امام رضا.' },
+      { id: 'rb_uni', name: 'میدان دانشگاه', isRoundabout: true, level: 3, x: 70, z: 0, desc: 'میدان تقاطع پردیس دانشگاهی.' },
+      { id: 'uturn_esteghlal', name: 'دوربرگردان بلوار استقلال', isUTurn: true, level: 3, x: 28, z: 62, desc: 'دوربرگردان بلوار استقلال.' },
+      { id: 'traffic_light_1', name: 'تقاطع چراغ قرمز استقلال و عطار', isTrafficLight: true, level: 3, x: 28, z: 45, desc: 'چهارراه هوشمند با چراغ راهنمایی سه‌رنگ.' }
+    ];
+
+    // ساختمان‌ها با مختصات دقیق داخل قطعات بلوک‌بندی شهری (کاملاً دور از محور آسفالت خیابان‌ها)
+    // عرض معابر اصلی: 18 متر (بازه امن: فاصله حداقل 15 متر از مرکز خطوط خیابان)
+    const GOLBAHAR_BUILDINGS = [
+      // ۱. بلوک تجاری میدان پرند (نبش جنوب‌شرقی میدان پرند در خیابان استقلال)
+      { id: 'b_mall_1', name: 'مجتمع تجاری گلبهار (پرند)', type: 'mall', x: 52, z: 22, level: 4, baseIncome: 55, basePop: 380, desc: 'برج تجاری چندطبقه صورتی/آبی با تاج پلکانی نبش میدان پرند.' },
+      { id: 'b_shop_cafe', name: 'کافه پرند (CAFE)', type: 'shop', x: 52, z: -22, level: 2, baseIncome: 22, basePop: 45, desc: 'ساختمان کافه با سایبان راه‌راه آبی در ضلع شمال‌شرقی میدان پرند.' },
+      { id: 'b_passage_1', name: 'پاساژ تجاری استقلال', type: 'passage', x: 52, z: 62, level: 3, baseIncome: 38, basePop: 150, desc: 'پاساژ ۳ طبقه شطرنجی آجری و خردلی در حاشیه بلوار استقلال.' },
+
+      // ۲. بلوک اداری شهرداری (ضلع شمال‌غربی میدان پرند)
+      { id: 'b_municipality', name: 'عمارت شهرداری گلبهار', type: 'municipality', x: 4, z: -25, level: 4, baseIncome: 42, basePop: 280, desc: 'ساختمان مرکزی شهرداری و شورا با گنبد فیروزه‌ای بین استقلال و پرند.' },
+
+      // ۳. بلوک مسکونی ویلایی (جنوب بلوار پرند در محدوده عطار)
+      { id: 'b_villa_1', name: 'ویلای دوبلکس پرند ۱', type: 'villa', x: 4, z: 22, level: 3, baseIncome: 14, basePop: 18, desc: 'ویلای دوبلکس با سقف شیروانی سفالی و بالکن نرده‌دار.' },
+      { id: 'b_villa_2', name: 'ویلای باغچه‌دار پرند ۲', type: 'villa', x: -22, z: 22, level: 2, baseIncome: 14, basePop: 18, desc: 'خانه ویلایی با ایوان و درختان حیاط.' },
+
+      // ۴. پهنه ۳۰ محله مسکن ملی (غرب بلوار عدالت و امام رضا)
+      { id: 'b_melli_1', name: 'مسکن ملی بلوک زاگرس (۳ طبقه)', type: 'maskan_melli', x: -88, z: -48, level: 2, baseIncome: 26, basePop: 120, desc: 'آپارتمان مسکن ملی ۳ طبقه با نمای باندی کرم و خردلی.' },
+      { id: 'b_melli_2', name: 'مسکن ملی بلوک البرز (۴ طبقه)', type: 'maskan_melli', x: -88, z: 22, level: 3, baseIncome: 26, basePop: 160, desc: 'آپارتمان مسکن ملی ۴ طبقه با بالکن‌های جلوآمده.' },
+      { id: 'b_melli_3', name: 'مسکن ملی بلوک بینالود (۵ طبقه)', type: 'maskan_melli', x: -88, z: 62, level: 4, baseIncome: 26, basePop: 210, desc: 'مجتمع ۵ طبقه کامل مسکن ملی گلبهار با آسانسور.' },
+
+      // ۵. بلوک خدمات خودرویی و رفاهی
+      { id: 'b_shop_gas', name: 'جایگاه خدمات (GAS)', type: 'shop', x: 4, z: -62, level: 4, baseIncome: 28, basePop: 60, desc: 'ایستگاه سوخت و خدمات خودرویی با تابلوی بلند نارنجی.' },
+
+      // ۶. بلوک خدمات ایمنی و انتظامی (شرق خیابان دانشجو)
+      { id: 'b_fire', name: 'ایستگاه مرکزی آتش‌نشانی', type: 'fire_station', x: 92, z: -25, level: 3, baseIncome: 20, basePop: 95, desc: 'ایستگاه آتش‌نشانی با برج دیده‌بانی و آشیانه قرمز.' },
+      { id: 'b_police', name: 'کلانتری ۱۱ گلبهار', type: 'police', x: 92, z: 25, level: 3, baseIncome: 20, basePop: 110, desc: 'کلانتری با دکل مخابراتی و نوار آبی پلیس.' },
+
+      // ۷. فرودگاه هواپیماهای فوق‌سبک در جنوب‌شرقی شهر
+      { id: 'b_airport', name: 'فرودگاه گلبهار', type: 'airport', x: 70, z: 62, level: 3, baseIncome: 65, basePop: 240, desc: 'فرودگاه گلبهار با باند پرواز و برج مراقبت.' }
+    ];
+
+
+    const state = {
+      treasury: 2450,
+      permits: 800,
+      gems: 46,
+      trophies: 350,
+      sound: true,
+      selectedEntity: null,
+      cameraTarget: new THREE.Vector3(0, 0, 0),
+      cameraZoom: 1.05,
+      cameraAngle: Math.PI / 4,
+      isDragging: false,
+      quakeTrauma: 0
+    };
+
+    const canvas = document.getElementById('gameCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a2118);
+
+    let orthoCam;
+    function setupOrthoCamera() {
+      const w = canvas.parentElement.clientWidth || window.innerWidth;
+      const h = canvas.parentElement.clientHeight || window.innerHeight;
+      const aspect = w / h;
+      const frustumSize = 120;
+      orthoCam = new THREE.OrthographicCamera(
+        -frustumSize * aspect / 2,
+         frustumSize * aspect / 2,
+         frustumSize / 2,
+        -frustumSize / 2,
+        -500,
+        1000
+      );
+      updateCameraTransform();
+      renderer.setSize(w, h);
+    }
+
+    function updateCameraTransform() {
+      if (!orthoCam) return;
+      const dist = 160;
+      const elev = 125;
+      let shakeX = 0, shakeZ = 0;
+      if (state.quakeTrauma > 0) {
+        const s = state.quakeTrauma * state.quakeTrauma * 4.5;
+        shakeX = Math.sin(performance.now() * 0.045) * s;
+        shakeZ = Math.cos(performance.now() * 0.055) * s;
+      }
+      orthoCam.position.set(
+        state.cameraTarget.x + Math.cos(state.cameraAngle) * dist + shakeX,
+        elev,
+        state.cameraTarget.z + Math.sin(state.cameraAngle) * dist + shakeZ
+      );
+      orthoCam.lookAt(state.cameraTarget.x + shakeX, 0, state.cameraTarget.z + shakeZ);
+      orthoCam.zoom = state.cameraZoom;
+      orthoCam.updateProjectionMatrix();
+    }
+
+    // نورپردازی
+    const hemiLight = new THREE.HemisphereLight(0xfff7e6, 0x3b4d59, 0.78);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfff0d4, 0.95);
+    sunLight.position.set(95, 145, 75);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.left = -160;
+    sunLight.shadow.camera.right = 160;
+    sunLight.shadow.camera.top = 160;
+    sunLight.shadow.camera.bottom = -160;
+    sunLight.shadow.bias = -0.0005;
+    scene.add(sunLight);
+
+    const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.28);
+    fillLight.position.set(-90, 60, -80);
+    scene.add(fillLight);
+
+    const matCache = {};
+    function clayMat(hexColor, rough = 0.88) {
+      const key = `${hexColor}_${rough}`;
+      if (!matCache[key]) {
+        matCache[key] = new THREE.MeshStandardMaterial({
+          color: hexColor,
+          roughness: rough,
+          metalness: 0.04,
+          flatShading: true
+        });
+      }
+      return matCache[key];
+    }
+
+    function makeBox(w, h, d, hexColor, x = 0, y = 0, z = 0) {
+      const geom = new THREE.BoxGeometry(w, h, d);
+      const mesh = new THREE.Mesh(geom, clayMat(hexColor));
+      mesh.position.set(x, y + h / 2, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function createLowPolyTree(scale = 1.0, foliageHex = 0x2dd4bf) {
+      const group = new THREE.Group();
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35 * scale, 0.5 * scale, 2.2 * scale, 6), clayMat(0x5c4033));
+      trunk.position.y = 1.1 * scale;
+      trunk.castShadow = true;
+      group.add(trunk);
+
+      const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(2.1 * scale, 0), clayMat(foliageHex, 0.92));
+      crown.position.y = 3.2 * scale;
+      crown.castShadow = true;
+      crown.receiveShadow = true;
+      group.add(crown);
+      return group;
+    }
+
+    function createStreetLamp() {
+      const group = new THREE.Group();
+      const pole = makeBox(0.32, 6.2, 0.32, 0x27272a, 0, 0, 0);
+      const arm = makeBox(1.6, 0.28, 0.32, 0x27272a, 0.65, 6.0, 0);
+      const bulb = makeBox(0.6, 0.2, 0.45, 0xfef08a, 1.2, 5.85, 0);
+      group.add(pole, arm, bulb);
+      return group;
+    }
+
+    const worldRoot = new THREE.Group();
+    scene.add(worldRoot);
+    const roadsGroup = new THREE.Group();
+    const buildingsGroup = new THREE.Group();
+    const vehiclesGroup = new THREE.Group();
+    worldRoot.add(roadsGroup, buildingsGroup, vehiclesGroup);
+
+    function buildBaseTerrainAndLake() {
+      const ground = makeBox(360, 2, 340, 0x2c3527, 0, -2, 0);
+      ground.castShadow = false;
+      worldRoot.add(ground);
+
+      const parkLawn = makeBox(44, 0.4, 40, 0x3b7a57, -36, 0, -36);
+      const lakeWater = makeBox(30, 0.55, 26, 0x0ea5e9, -36, 0, -36);
+      const pier = makeBox(8, 0.8, 3.5, 0xd97706, -21, 0, -36);
+      worldRoot.add(parkLawn, lakeWater, pier);
+
+      const treeColors = [0x14b8a6, 0x84cc16, 0x06b6d4, 0x65a30d];
+      for (let i = 0; i < 12; i++) {
+        const ang = (i / 12) * Math.PI * 2;
+        const tx = -36 + Math.cos(ang) * 18;
+        const tz = -36 + Math.sin(ang) * 16;
+        const tree = createLowPolyTree(0.95 + (i % 3) * 0.2, treeColors[i % treeColors.length]);
+        tree.position.set(tx, 0.4, tz);
+        worldRoot.add(tree);
+      }
+    }
+
+    // =========================================================================
+    // ۳. معابر و ساختمان‌ها
+    // =========================================================================
+    const roadMeshesMap = {};
+    function buildOrUpdateRoadEntity(road) {
+      if (roadMeshesMap[road.id]) roadsGroup.remove(roadMeshesMap[road.id]);
+      const grp = new THREE.Group();
+      grp.userData = { entityType: "road", entity: road };
+      const lvl = road.level;
+
+      if (road.kind === 'bridge') {
+        const len = Math.abs(road.z2 - road.z1);
+        const cz = (road.z1 + road.z2) / 2;
+        const bridgeDeck = makeBox(10.5, 1.4, len, 0x94a3b8, road.x, 6.5, cz);
+        const bridgeAsphalt = makeBox(8.6, 0.3, len, 0x27272a, road.x, 7.3, cz);
+        const pier1 = makeBox(7.5, 6.5, 2.5, 0x64748b, road.x, 0, cz - 7);
+        const pier2 = makeBox(7.5, 6.5, 2.5, 0x64748b, road.x, 0, cz + 7);
+        const rampN = makeBox(8.6, 3.2, 12, 0x64748b, road.x, 1.6, cz - len/2 - 5);
+        const rampS = makeBox(8.6, 3.2, 12, 0x64748b, road.x, 1.6, cz + len/2 + 5);
+        grp.add(bridgeDeck, bridgeAsphalt, pier1, pier2, rampN, rampS);
+      } else if (road.isRoundabout) {
+        const outerR = 12 + lvl * 1.5;
+        const asphaltDisc = new THREE.Mesh(new THREE.CylinderGeometry(outerR, outerR, 0.36, 32), clayMat(0x27272a));
+        asphaltDisc.position.set(road.x, 0.18, road.z);
+        asphaltDisc.receiveShadow = true;
+        grp.add(asphaltDisc);
+
+        if (lvl >= 2) {
+          const curbDisc = new THREE.Mesh(new THREE.CylinderGeometry(outerR * 0.52, outerR * 0.54, 0.7, 24), clayMat(0xd4d4d8));
+          curbDisc.position.set(road.x, 0.35, road.z);
+          const grassDisc = new THREE.Mesh(new THREE.CylinderGeometry(outerR * 0.46, outerR * 0.46, 0.8, 24), clayMat(0x3b7a57));
+          grassDisc.position.set(road.x, 0.42, road.z);
+          grp.add(curbDisc, grassDisc);
+        }
+        if (lvl >= 4) {
+          const pool = new THREE.Mesh(new THREE.CylinderGeometry(outerR * 0.28, outerR * 0.3, 1.2, 20), clayMat(0x06b6d4));
+          pool.position.set(road.x, 0.65, road.z);
+          grp.add(pool);
+        }
+      } else if (road.isUTurn) {
+        const uturnBase = makeBox(14.5, 0.4, 8.5, 0x27272a, road.x, 0.02, road.z);
+        const uturnArrow = makeBox(8.5, 0.45, 1.2, 0xfde047, road.x, 0.03, road.z);
+        grp.add(uturnBase, uturnArrow);
+      } else if (road.isTrafficLight) {
+        const juncAsphalt = makeBox(18.5, 0.4, 18.5, 0x27272a, road.x, 0.02, road.z);
+        for (let i = -6; i <= 6; i += 3) {
+          grp.add(makeBox(14, 0.44, 1.1, 0xffffff, road.x, 0.03, road.z + i));
+        }
+        const pole = makeBox(0.4, 7.5, 0.4, 0x1e293b, road.x + 8.5, 0, road.z + 8.5);
+        const lightBox = makeBox(1.2, 3.2, 1.2, 0x0f172a, road.x + 8.5, 5.8, road.z + 8.5);
+        const redBulb = makeBox(0.5, 0.7, 1.3, 0xef4444, road.x + 8.5, 7.0, road.z + 8.5);
+        const yellowBulb = makeBox(0.5, 0.7, 1.3, 0xfde047, road.x + 8.5, 6.2, road.z + 8.5);
+        const greenBulb = makeBox(0.5, 0.7, 1.3, 0x22c55e, road.x + 8.5, 5.4, road.z + 8.5);
+        grp.add(juncAsphalt, pole, lightBox, redBulb, yellowBulb, greenBulb);
+      } else if (road.isCurved) {
+        const pts = road.points;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p1 = pts[i];
+          const p2 = pts[i+1];
+          const segLen = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+          const midX = (p1[0] + p2[0]) / 2;
+          const midZ = (p1[1] + p2[1]) / 2;
+          const ang = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
+
+          const seg = makeBox(segLen + 1, 0.38, 14.5, 0x27272a, midX, 0.02, midZ);
+          seg.rotation.y = -ang;
+          const dash = makeBox(segLen * 0.7, 0.42, 0.8, 0xf8fafc, midX, 0.03, midZ);
+          dash.rotation.y = -ang;
+          grp.add(seg, dash);
+        }
+      } else {
+        const isZ = road.axis === 'z';
+        const len = isZ ? Math.abs(road.z2 - road.z1) : Math.abs(road.x2 - road.x1);
+        const cx = isZ ? road.x : (road.x1 + road.x2) / 2;
+        const cz = isZ ? (road.z1 + road.z2) / 2 : road.z;
+        const roadWidths = { 1: 6.5, 2: 9.5, 3: 13.0, 4: 17.5, 5: 22.0 };
+        const rw = roadWidths[lvl] || 13;
+
+        if (lvl >= 2) {
+          const swWidth = rw + (lvl >= 3 ? 4.2 : 2.2);
+          grp.add(makeBox(isZ ? swWidth : len, 0.35, isZ ? len : swWidth, 0xa8a29e, cx, 0, cz));
+        }
+        grp.add(makeBox(isZ ? rw : len, 0.38, isZ ? len : rw, lvl === 1 ? 0x78716c : 0x27272a, cx, 0.02, cz));
+
+        if (lvl >= 3) {
+          const dashCount = Math.floor(len / 8);
+          for (let i = -dashCount / 2; i < dashCount / 2; i++) {
+            const offset = i * 8 + 4;
+            grp.add(makeBox(isZ ? 0.45 : 3.2, 0.42, isZ ? 3.2 : 0.45, 0xf8fafc, isZ ? cx : cx + offset, 0.03, isZ ? cz + offset : cz));
+          }
+          for (let i = -Math.floor(len / 28); i <= Math.floor(len / 28); i++) {
+            if (i === 0) continue;
+            const lamp = createStreetLamp();
+            const posOff = i * 26;
+            if (isZ) lamp.position.set(cx - rw / 2 - 1.1, 0.35, cz + posOff);
+            else { lamp.rotation.y = Math.PI / 2; lamp.position.set(cx + posOff, 0.35, cz - rw / 2 - 1.1); }
+            grp.add(lamp);
+          }
+        }
+        if (lvl >= 4 && len > 24) {
+          grp.add(makeBox(isZ ? 2.4 : len - 12, 0.55, isZ ? len - 12 : 2.4, 0x3b7a57, cx, 0.05, cz));
+        }
+
+        if (road.isBlockedExit) {
+          const barrier1 = makeBox(1.4, 2.2, rw + 1.2, 0xef4444, cx - 10, 0.4, cz);
+          const barrier2 = makeBox(1.4, 2.2, rw + 1.2, 0xffffff, cx - 8, 0.4, cz);
+          const guardPost = makeBox(3.8, 3.4, 3.8, 0x1e293b, cx - 4, 0.4, cz - rw/2 - 2.8);
+          const stopSign = makeBox(0.4, 4.2, 2.4, 0xdc2626, cx - 6, 0.4, cz);
+          grp.add(barrier1, barrier2, guardPost, stopSign);
+        }
+      }
+      roadMeshesMap[road.id] = grp;
+      roadsGroup.add(grp);
+    }
+
+    const buildingMeshesMap = {};
+    function addWindowGrid(group, bw, bh, bd, floors, cols, winHex = 0x334155, frameHex = 0xf8fafc) {
+      const startY = 3.2;
+      const stepY = (bh - 4.2) / Math.max(1, floors);
+      const stepX = (bw - 3.0) / Math.max(1, cols);
+      for (let f = 0; f < floors; f++) {
+        const wy = startY + f * stepY;
+        for (let c = 0; c < cols; c++) {
+          const wx = -bw / 2 + 2.2 + c * stepX;
+          group.add(makeBox(1.7, 1.8, bd + 0.35, frameHex, wx, wy, 0));
+          group.add(makeBox(1.3, 1.4, bd + 0.5, winHex, wx, wy + 0.2, 0));
+        }
+      }
+    }
+
+    function buildOrUpdateBuildingMesh(bldg) {
+      if (buildingMeshesMap[bldg.id]) buildingsGroup.remove(buildingMeshesMap[bldg.id]);
+      const grp = new THREE.Group();
+      grp.position.set(bldg.x, 0, bldg.z);
+      grp.userData = { entityType: 'building', entity: bldg };
+
+      const lvl = bldg.level;
+      const type = bldg.type;
+      const plotW = type === 'airport' ? 36 : (type === 'mall' || type === 'municipality' ? 22 : 17);
+      const plotD = type === 'airport' ? 26 : (type === 'mall' || type === 'municipality' ? 22 : 17);
+      grp.add(makeBox(plotW + 0.8, 0.35, plotD + 0.8, 0xd4d4d8, 0, 0, 0));
+      grp.add(makeBox(plotW, 0.55, plotD, 0x3b7a57, 0, 0, 0));
+
+      if (type === 'villa') {
+        const h = 4.2 + lvl * 1.6;
+        const w = 7.5 + lvl * 0.8;
+        const d = 7.5 + lvl * 0.8;
+        grp.add(makeBox(w, h, d, 0xfef08a, -1, 0.55, 0));
+        const roofGeom = new THREE.ConeGeometry(w * 0.82, 3.8, 4);
+        roofGeom.rotateY(Math.PI / 4);
+        const roofMesh = new THREE.Mesh(roofGeom, clayMat(0xea580c));
+        roofMesh.position.set(-1, 0.55 + h + 1.9, 0);
+        roofMesh.castShadow = true;
+        grp.add(roofMesh);
+        if (lvl >= 2) {
+          grp.add(makeBox(4.2, 0.4, 3.5, 0xe2e8f0, 3.2, 0.55 + h * 0.52, 1.5));
+          grp.add(makeBox(0.35, h * 0.52, 0.35, 0xf8fafc, 4.8, 0.55, 2.8));
+          grp.add(makeBox(0.35, h * 0.52, 0.35, 0xf8fafc, 4.8, 0.55, 0.2));
+        }
+      } else if (type === 'maskan_melli') {
+        const floorsMap = { 1: 3, 2: 3, 3: 4, 4: 5, 5: 5 };
+        const floors = floorsMap[lvl] || 3;
+        const floorH = 3.1;
+        const totalH = floors * floorH;
+        grp.add(makeBox(10.5, totalH, 9.5, 0xfef3c7, 0, 0.55, 0));
+        for (let f = 0; f < floors; f++) {
+          if (lvl >= 2) grp.add(makeBox(10.85, 0.9, 9.85, 0xd97706, 0, 0.55 + f * floorH + 0.2, 0));
+        }
+        addWindowGrid(grp, 10.5, totalH, 9.5, floors, 3, 0x334155, 0xffffff);
+      } else if (type === 'shop') {
+        const h = 4.5 + lvl * 2.2;
+        grp.add(makeBox(9.5, h, 8.5, 0xf8fafc, 0, 0.55, 0));
+        const awning = makeBox(10.5, 0.8, 3.2, 0x60a5fa, 0, 3.6, 5.4);
+        awning.rotation.x = 0.28;
+        grp.add(awning);
+      } else if (type === 'passage') {
+        grp.add(makeBox(12.5, (lvl + 1) * 3.4, 11.0, 0xd9534f, 0, 0.55, 0));
+      } else if (type === 'mall') {
+        const h = (lvl + 2) * 3.8;
+        grp.add(makeBox(15.0, h, 13.5, 0xf4b8b0, 0, 0.55, 0));
+        if (lvl >= 3) grp.add(makeBox(10, 3.2, 9, 0xfde68a, 0, 0.55 + h, 0));
+      } else if (type === 'municipality') {
+        const h = 6.0 + lvl * 2.8;
+        grp.add(makeBox(15.5, h, 13.0, 0xe2e8f0, 0, 0.55, 0));
+        if (lvl >= 3) {
+          const dome = new THREE.Mesh(new THREE.SphereGeometry(3.8, 12, 10), clayMat(0x06b6d4));
+          dome.position.set(0, 0.55 + h + 1.2, 0);
+          grp.add(dome);
+        }
+      } else if (type === 'fire_station') {
+        grp.add(makeBox(13.0, 5.0 + lvl * 2.0, 11.0, 0xdc2626, -1.5, 0.55, 0));
+      } else if (type === 'police') {
+        const h = 5.5 + lvl * 2.2;
+        grp.add(makeBox(13.0, h, 11.0, 0xf8fafc, 0, 0.55, 0));
+        grp.add(makeBox(13.5, 1.6, 11.5, 0x1d4ed8, 0, 0.55 + h * 0.45, 0));
+      } else if (type === 'airport') {
+        grp.add(makeBox(34, 0.35, 8.5, 0x1e293b, 0, 0.55, 6.5));
+        grp.add(makeBox(14, 5.5, 9.0, 0xe2e8f0, -3, 0.55, -4.5));
+        if (lvl >= 2) {
+          grp.add(makeBox(3.2, 12, 3.2, 0xf8fafc, 10, 0.55, -5.5));
+          grp.add(makeBox(5.2, 2.8, 5.2, 0x38bdf8, 10, 12.55, -5.5));
+        }
+      }
+      buildingMeshesMap[bldg.id] = grp;
+      buildingsGroup.add(grp);
+    }
+
+    const movingVehicles = [];
+    // مسیرهای حرکت ترافیک دقیقاً در امتداد محور و باند آسفالت خیابان‌ها
+    function spawnVehicles() {
+      const specs = [
+        // لاین رفت و برگشت بلوار استقلال (x: 26 و x: 30 در طول z: -70 تا 75)
+        { axis: 'z', x: 26, z: -70, speed: 0.35, color: 0xea580c },
+        { axis: 'z', x: 30, z: 70, speed: -0.32, color: 0x0284c7 },
+        // لاین رفت و برگشت بلوار پرند (z: -2 و z: 2 در طول x: -95 تا 95)
+        { axis: 'x', x: -95, z: -2.2, speed: 0.32, color: 0xf59e0b },
+        { axis: 'x', x: 95, z: 2.2, speed: -0.36, color: 0xffffff },
+        // لاین بزرگراه مشهد-قوچان در شمال (z: -95)
+        { axis: 'x', x: -120, z: -95, speed: 0.55, color: 0xfde047 }
+      ];
+      specs.forEach(sp => {
+        const vGrp = new THREE.Group();
+        vGrp.add(makeBox(4.0, 1.2, 2.2, sp.color, 0, 0.4, 0));
+        vGrp.add(makeBox(2.2, 1.0, 1.9, 0xfef3c7, -0.2, 1.6, 0));
+        if (sp.axis === 'z') vGrp.rotation.y = Math.PI / 2;
+        vGrp.position.set(sp.x, 0.35, sp.z);
+        vehiclesGroup.add(vGrp);
+        movingVehicles.push({ mesh: vGrp, spec: sp });
+      });
+    }
+
+    // =========================================================================
+    // ۴. پین‌های سبک Rush Royale
+    // =========================================================================
+    const domLabelsMap = {};
+    const labelsContainer = document.getElementById('labelsContainer');
+
+    function syncHtmlLabels() {
+      const w = canvas.parentElement.clientWidth;
+      const h = canvas.parentElement.clientHeight;
+
+      GOLBAHAR_BUILDINGS.forEach(b => {
+        let el = domLabelsMap[b.id];
+        if (!el) {
+          el = document.createElement('div');
+          el.className = 'rr-unit-pin';
+          el.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            openEntityInspector(b, false);
+          });
+          labelsContainer.appendChild(el);
+          domLabelsMap[b.id] = el;
+        }
+
+        const pos3D = new THREE.Vector3(b.x, 8 + b.level * 3.5, b.z);
+        pos3D.project(orthoCam);
+        const sx = (pos3D.x *  0.5 + 0.5) * w;
+        const sy = (pos3D.y * -0.5 + 0.5) * h;
+
+        if (sx < -60 || sx > w + 60 || sy < 40 || sy > h - 55) {
+          el.style.display = 'none';
+          return;
+        }
+        el.style.display = 'flex';
+        el.style.left = `${sx}px`;
+        el.style.top = `${sy}px`;
+
+        el.innerHTML = `
+          <div class="rr-pin-card">
+            <div class="rr-pin-shield">${b.level}</div>
+            <span class="text-[10px] font-black text-white whitespace-nowrap pl-1 rr-text-stroke">${b.name}</span>
+          </div>
+          <div class="rr-pin-pointer"></div>
+        `;
+      });
+    }
+
+    // =========================================================================
+    // ۵. درگ روان ۳۶۰ درجه
+    // =========================================================================
+    const pointerState = { isDown: false, startX: 0, startY: 0, lastX: 0, lastY: 0, initialTargetX: 0, initialTargetZ: 0, vx: 0, vz: 0 };
+    const mapWrapperEl = document.getElementById('mapWrapper');
+
+    mapWrapperEl.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.rr-unit-pin')) return;
+      pointerState.isDown = true;
+      pointerState.startX = e.clientX;
+      pointerState.startY = e.clientY;
+      pointerState.lastX = e.clientX;
+      pointerState.lastY = e.clientY;
+      pointerState.initialTargetX = state.cameraTarget.x;
+      pointerState.initialTargetZ = state.cameraTarget.z;
+      pointerState.vx = 0;
+      pointerState.vz = 0;
+      state.isDragging = true;
+      mapWrapperEl.setPointerCapture(e.pointerId);
+    });
+
+    mapWrapperEl.addEventListener('pointermove', (e) => {
+      if (!pointerState.isDown) return;
+      const totalDx = e.clientX - pointerState.startX;
+      const totalDy = e.clientY - pointerState.startY;
+      const frameDx = e.clientX - pointerState.lastX;
+      const frameDy = e.clientY - pointerState.lastY;
+      pointerState.lastX = e.clientX;
+      pointerState.lastY = e.clientY;
+
+      const factor = 0.52 / state.cameraZoom;
+      const cosA = Math.cos(state.cameraAngle);
+      const sinA = Math.sin(state.cameraAngle);
+
+      const panX = (-totalDx * sinA - totalDy * cosA) * factor;
+      const panZ = ( totalDx * cosA - totalDy * sinA) * factor;
+
+      state.cameraTarget.x = pointerState.initialTargetX + panX;
+      state.cameraTarget.z = pointerState.initialTargetZ + panZ;
+
+      pointerState.vx = (-frameDx * sinA - frameDy * cosA) * factor;
+      pointerState.vz = ( frameDx * cosA - frameDy * sinA) * factor;
+      updateCameraTransform();
+    });
+
+    function endPointerDrag(e) {
+      if (!pointerState.isDown) return;
+      pointerState.isDown = false;
+      state.isDragging = false;
+      try { mapWrapperEl.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+    mapWrapperEl.addEventListener('pointerup', endPointerDrag);
+    mapWrapperEl.addEventListener('pointercancel', endPointerDrag);
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.12 : -0.12;
+      state.cameraZoom = Math.max(0.55, Math.min(2.4, state.cameraZoom + delta));
+      updateCameraTransform();
+    }, { passive: false });
+
+    // پرش به محلات
+    function focusCameraOn(x, z, zoom = 1.15) {
+      playSfx(520, 'sine', 0.08);
+      state.cameraTarget.set(x, 0, z);
+      state.cameraZoom = zoom;
+      updateCameraTransform();
+    }
+
+    document.getElementById('locParandBtn').addEventListener('click', () => { focusCameraOn(28, 0, 1.1); showToast('میدان پرند و استقلال'); });
+    document.getElementById('locMehrBtn').addEventListener('click', () => { focusCameraOn(-65, -25, 1.1); showToast('پل امام رضا و مسکن مهر'); });
+    document.getElementById('locLakeBtn').addEventListener('click', () => { focusCameraOn(-20, -35, 1.15); showToast('دریاچه سنجاقک و بازار'); });
+    document.getElementById('locUniBtn').addEventListener('click', () => { focusCameraOn(75, 0, 1.15); showToast('خدمات، کلانتری و آتش‌نشانی'); });
+    document.getElementById('locAirportBtn').addEventListener('click', () => { focusCameraOn(75, 68, 1.05); showToast('فرودگاه گلبهار'); });
+
+    document.getElementById('zoomInBtn').addEventListener('click', () => { state.cameraZoom = Math.min(2.4, state.cameraZoom + 0.18); updateCameraTransform(); playSfx(620); });
+    document.getElementById('zoomOutBtn').addEventListener('click', () => { state.cameraZoom = Math.max(0.55, state.cameraZoom - 0.18); updateCameraTransform(); playSfx(420); });
+    document.getElementById('rotateCamBtn').addEventListener('click', () => { state.cameraAngle += Math.PI / 2; updateCameraTransform(); playSfx(540); showToast('چرخش ۹۰ درجه دوربین'); });
+    document.getElementById('resetCamBtn').addEventListener('click', () => { state.cameraAngle = Math.PI / 4; focusCameraOn(0, 0, 1.05); });
+
+    // بازرسی سازه به سبک کارت ارتقای Rush Royale
+    function openEntityInspector(entity, isRoad = false) {
+      playSfx(580, 'triangle', 0.1);
+      state.selectedEntity = { data: entity, isRoad };
+
+      const lvl = entity.level;
+      document.getElementById('cardShieldLvl').innerText = lvl;
+
+      let stars = '';
+      for (let i = 1; i <= 5; i++) stars += i <= lvl ? '★' : '☆';
+      document.getElementById('levelStarsRow').innerText = stars;
+
+      if (isRoad) {
+        document.getElementById('cardCategoryBadge').innerText = 'معبر و محور شریانی';
+        document.getElementById('cardName').innerText = entity.name;
+        document.getElementById('cardStageTitle').innerText = ROAD_STAGE_NAMES[lvl] || `سطح ${lvl}`;
+        document.getElementById('cardDesc').innerText = entity.desc;
+        document.getElementById('cardStat').innerText = `ظرفیت ترافیک: ${lvl * 450} خودرو/ساعت`;
+        document.getElementById('cardPopStat').innerText = 'ارتقای پیوسته سراسری محور';
+      } else {
+        const cat = BUILDING_CATALOG[entity.type];
+        document.getElementById('cardCategoryBadge').innerText = cat.categoryTitle;
+        document.getElementById('cardName').innerText = entity.name;
+        document.getElementById('cardStageTitle').innerText = cat.stages[lvl - 1] || `سطح ${lvl}`;
+        document.getElementById('cardDesc').innerText = entity.desc;
+        document.getElementById('cardStat').innerText = `+${(entity.baseIncome * lvl).toLocaleString('fa-IR')}k تومان در هر دوره`;
+        document.getElementById('cardPopStat').innerText = `${(entity.basePop * lvl).toLocaleString('fa-IR')} نفر ظرفیت`;
+      }
+
+      document.getElementById('upgradeBtnText').innerText = lvl < 5 ? `ارتقا به سطح ${lvl + 1} (${lvl * 150}k تومان)` : 'حداکثر سطح ۵';
+      document.getElementById('inspectorCard').classList.remove('hidden');
+    }
+
+    document.getElementById('cardActionBtn').addEventListener('click', () => {
+      if (!state.selectedEntity) return;
+      const { data, isRoad } = state.selectedEntity;
+      if (data.level >= 5) { showToast('این سازه در بالاترین سطح است!', '⭐'); return; }
+
+      const cost = data.level * 150;
+      if (state.treasury < cost) { showToast('موجودی خزانه کافی نیست!', '❌'); return; }
+
+      state.treasury -= cost;
+      data.level += 1;
+      updateHudNumbers();
+
+      if (isRoad) buildOrUpdateRoadEntity(data);
+      else buildOrUpdateBuildingMesh(data);
+
+      openEntityInspector(data, isRoad);
+      playSfx(880, 'square', 0.2);
+      showToast(`«${data.name}» به سطح ${data.level} ارتقا یافت!`, '✨');
+    });
+
+    document.getElementById('closeInspectorBtn').addEventListener('click', () => {
+      document.getElementById('inspectorCard').classList.add('hidden');
+      state.selectedEntity = null;
+    });
+
+    // لیست معابر
+    function renderRoadsModalList() {
+      const container = document.getElementById('roadsListContainer');
+      container.innerHTML = '';
+      GOLBAHAR_ROADS_NETWORK.forEach(r => {
+        const row = document.createElement('div');
+        row.className = 'p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between';
+        row.innerHTML = `
+          <div>
+            <strong class="text-white text-xs block font-black">${r.name}</strong>
+            <span class="text-[10px] text-sky-300 font-bold">${ROAD_STAGE_NAMES[r.level]}</span>
+          </div>
+          <button class="px-3 py-1.5 rounded-xl ${r.level >= 5 ? 'bg-slate-700 text-slate-400' : 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950'} font-black text-xs shadow-md">
+            ${r.level >= 5 ? 'سطح ۵' : `ارتقا (${r.level * 140}k)`}
+          </button>
+        `;
+        row.querySelector('button').addEventListener('click', () => {
+          if (r.level < 5 && state.treasury >= r.level * 140) {
+            state.treasury -= r.level * 140;
+            r.level += 1;
+            buildOrUpdateRoadEntity(r);
+            updateHudNumbers();
+            renderRoadsModalList();
+            showToast(`معبر «${r.name}» ارتقا یافت!`, '🛣️');
+          }
+        });
+        container.appendChild(row);
+      });
+    }
+
+    document.getElementById('sideStoreBtn').addEventListener('click', () => {
+      renderRoadsModalList();
+      document.getElementById('roadsModal').classList.remove('hidden');
+      playSfx(520);
+    });
+    document.getElementById('closeRoadsModalBtn').addEventListener('click', () => document.getElementById('roadsModal').classList.add('hidden'));
+
+    document.getElementById('sideBuildBtn').addEventListener('click', () => {
+      document.getElementById('buildModal').classList.remove('hidden');
+      playSfx(520);
+    });
+    document.getElementById('closeBuildModalBtn').addEventListener('click', () => document.getElementById('buildModal').classList.add('hidden'));
+
+    document.querySelectorAll('.select-build-type').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-btype');
+        const spec = BUILDING_CATALOG[type];
+        if (state.treasury < spec.cost) { showToast('موجودی کافی نیست!', '❌'); return; }
+
+        state.treasury -= spec.cost;
+        const newB = {
+          id: 'b_custom_' + Date.now(),
+          name: spec.categoryTitle,
+          type,
+          x: Math.round(state.cameraTarget.x + (Math.random() - 0.5) * 40),
+          z: Math.round(state.cameraTarget.z + (Math.random() - 0.5) * 40),
+          level: 1,
+          baseIncome: 20,
+          basePop: 50,
+          desc: 'سازه احداث‌شده در محله جدید.'
+        };
+        GOLBAHAR_BUILDINGS.push(newB);
+        buildOrUpdateBuildingMesh(newB);
+        updateHudNumbers();
+        document.getElementById('buildModal').classList.add('hidden');
+        openEntityInspector(newB, false);
+        playSfx(740);
+        showToast(`«${newB.name}» احداث شد!`, '🏗️');
+      });
+    });
+
+    document.getElementById('sidePoliticsBtn').addEventListener('click', () => { document.getElementById('politicsModal').classList.remove('hidden'); playSfx(480); });
+    document.getElementById('closePoliticsModalBtn').addEventListener('click', () => document.getElementById('politicsModal').classList.add('hidden'));
+    document.getElementById('approveMetroBillBtn').addEventListener('click', () => {
+      updateHudNumbers();
+      document.getElementById('politicsModal').classList.add('hidden');
+      showToast('لایحه شورا تصویب شد', '🏛️');
+    });
+
+    document.getElementById('sideNewsBtn').addEventListener('click', () => { document.getElementById('crisisModal').classList.remove('hidden'); playSfx(480); });
+    document.getElementById('closeCrisisModalBtn').addEventListener('click', () => document.getElementById('crisisModal').classList.add('hidden'));
+    document.getElementById('simulateQuakeBtn').addEventListener('click', () => {
+      document.getElementById('crisisModal').classList.add('hidden');
+      state.quakeTrauma = 1.0;
+      playSfx(90, 'sawtooth', 0.8);
+      showToast('زلزله شبیه‌سازی شد! سازه‌های مقاوم پایدار ماندند.', '🌋');
+    });
+
+    document.getElementById('mainPlayBtn').addEventListener('click', () => {
+      let tax = 0;
+      GOLBAHAR_BUILDINGS.forEach(b => tax += b.baseIncome * b.level);
+      state.treasury += tax;
+      updateHudNumbers();
+      playSfx(740, 'sawtooth');
+      showToast(`عوارض جمع‌آوری شد: +${tax.toLocaleString('fa-IR')}k تومان`, '💰');
+    });
+
+    document.getElementById('greenCrateBtn').addEventListener('click', () => showToast('صندوق تدارکات: ۳ از ۱۰ ارتقا انجام شده', '📦'));
+    document.getElementById('blueCrateBtn').addEventListener('click', () => { state.gems += 15; updateHudNumbers(); showToast('+۱۵ الماس دریافت شد!', '💎'); });
+
+    let audioCtx = null;
+    function playSfx(freq = 440, type = 'sine', duration = 0.12) {
+      if (!state.sound) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function showToast(msg, icon = '⭐') {
+      const toast = document.getElementById('gameToast');
+      document.getElementById('toastMsg').innerText = msg;
+      document.getElementById('toastIcon').innerText = icon;
+      toast.classList.remove('hidden');
+      setTimeout(() => { toast.classList.add('hidden'); }, 2500);
+    }
+
+    function updateHudNumbers() {
+      document.getElementById('treasuryVal').innerText = `${state.treasury.toLocaleString('fa-IR')}k`;
+      document.getElementById('gemsVal').innerText = state.gems.toLocaleString('fa-IR');
+    }
+
+    document.getElementById('soundBtn').addEventListener('click', () => {
+      state.sound = !state.sound;
+      document.getElementById('soundIcon').innerText = state.sound ? '🔊' : '🔇';
+    });
+
+    function animate() {
+      if (state.quakeTrauma > 0) {
+        state.quakeTrauma = Math.max(0, state.quakeTrauma - 0.02);
+        updateCameraTransform();
+      }
+
+      movingVehicles.forEach(({ mesh, spec }) => {
+        if (spec.axis === 'z') {
+          mesh.position.z += spec.speed;
+          if (mesh.position.z > 110) mesh.position.z = -110;
+          if (mesh.position.z < -110) mesh.position.z = 110;
+        } else {
+          mesh.position.x += spec.speed;
+          if (mesh.position.x > 125) mesh.position.x = -125;
+          if (mesh.position.x < -125) mesh.position.x = 125;
+        }
+      });
+
+      renderer.render(scene, orthoCam);
+      syncHtmlLabels();
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', setupOrthoCamera);
+
+    function startCityEngine() {
+      if (window._cityEngineStarted) return;
+      window._cityEngineStarted = true;
+      try {
+        setupOrthoCamera();
+        buildBaseTerrainAndLake();
+        GOLBAHAR_ROADS_NETWORK.forEach(r => buildOrUpdateRoadEntity(r));
+        GOLBAHAR_BUILDINGS.forEach(b => buildOrUpdateBuildingMesh(b));
+        spawnVehicles();
+        updateHudNumbers();
+        requestAnimationFrame(animate);
+      } catch (err) {
+        console.error("Initialization error:", err);
+      }
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(startCityEngine, 10);
+    } else {
+      window.addEventListener('DOMContentLoaded', startCityEngine);
+      window.addEventListener('load', startCityEngine);
+    }
+  </script>
+</body>
+</html>
